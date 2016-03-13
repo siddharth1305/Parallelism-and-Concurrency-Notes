@@ -379,3 +379,89 @@ sum/length
  - *f(f(x,y), z) = f(f(y,z), x)*
 
 are satisfied then *f* is also **associative**.
+
+## Parallel Scan Left
+Now we turn our attention to **scanLeft** which produces a list of the folds of all list prefixes: `List(1,3,8).scanLeft(100)((s,x) => s + x) == List(100, 101, 104, 112)`
+We assume that the operation is **associative**.
+
+### Sequential definition
+
+```scala
+
+def scanLeft[A](inp: Array[A],
+                a0: A, f: (A,A) => A,
+		out: Array[A]): Unit = {
+	out(0) = a0
+	var a = a0
+	var i = 0
+	while (i < inp.length) {
+		a= f(a,inp(i))
+		i= i + 1
+		out(i)= a
+	}
+}
+```
+
+### Towards parallelization using trees
+We have to give up on reusing all intermediate results:
+
+ - do more `f` applications
+ - improve parallelism, to compensate the additional `f` applications
+
+To reuse some of the intermediate results, we remember that `reduce` proceeds by applying the operations in a tree, so let's assume that the input is also a tree.
+
+```scala
+// input tree class
+sealed abstract class Tree[A]
+case class Leaf[A](a: A) extends Tree[A]
+case class Node[A](l: Tree[A], r: Tree[A]) extends Tree[A]
+
+//result tree class
+sealed abstract class TreeRes[A] { val res: A }
+case class LeafRes[A](override val res: A) extends TreeRes[A]
+case class NodeRes[A](l: TreeRes[A], override val res: A, r: TreeRes[A]) extends TreeRes[A]
+```
+
+We now need to transform the input tree into the output tree:
+
+```scala
+def upsweep[A](t: Tree[A], f: (A,A) => A): TreeRes[A] = t match {
+	case Leaf(v) => LeafRes(v)
+	case Node(l, r) => {
+		val (tL, tR) = parallel(upsweep(l, f), upsweep(r, f))
+		NodeRes(tL, f(tL.res, tR.res), tR)
+	}
+}
+
+```
+
+And to use this intermediate tree to produce a `Tree` whose leaves are the result
+
+```scala
+def downsweep[A](t: TreeRes[A], a0: A, f : (A,A) => A): Tree[A] = t match {
+	case LeafRes(a) => Leaf(f(a0, a))
+	case NodeRes(l, _, r) => {
+		val (tL, tR) = parallel(downsweep[A](l, a0, f),
+		downsweep[A](r, f(a0, l.res), f))
+		Node(tL, tR)
+		}
+}
+```
+
+and `scanLeft` becomes easy to define
+
+```scala
+def scanLeft[A](t: Tree[A], a0: A, f: (A,A) => A): Tree[A] = {
+	val tRes = upsweep(t, f)
+	val scan1 = downsweep(tRes, a0, f)
+	prepend(a0, scan1)
+}
+
+def prepend[A](x: A, t: Tree[A]): Tree[A] = t match {
+	case Leaf(v) => Node(Leaf(x), Leaf(v))
+	case Node(l, r) => Node(prepend(x, l), r)
+}
+```
+
+### Using arrays
+To make it more efficient, we use trees that have arrays in leaves instead of individual elements.
