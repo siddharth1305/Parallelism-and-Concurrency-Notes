@@ -612,3 +612,116 @@ for ((k, v) <- graph.par) graph(k) = previous(k)
 ```
 
 This code works as expected.
+
+
+## Splitters and Combiners
+Let's now focus on the following abstractions:
+
+ - Iterators
+ - Splitters
+ - Builders
+ - Combiners
+
+### Iterator
+The simplified trait is
+
+```scala
+trait Iterator[A] {
+   def next(): A
+   def hasNext(): Boolean
+}
+
+def iterator: Iterator[A] // on every collection
+```
+
+The *iterator contract*:
+ - `next` can be called only if `hasNext` returns `true`
+ - after `hasNext` returns `false`, it will always return `false`
+
+use:
+
+```scala
+def foldLeft[B](z: B)(f: (B, A) => B): B = {
+  var s = z
+  while (hasNext) s = f(s, next())
+}
+```
+
+### Splitter
+The `Splitter` trait:
+
+```scala
+trait Splitter[A] extends Iterator[A] {
+  def split: Seq[Splitter[A]]
+  def remaining: Int
+}
+
+def splitter: Splitter[A] // on every parallel collection
+```
+
+the contract:
+
+ - After calling `split` the original splitter is left in an *undefined state*
+ - the resulting splitters traverse *disjoint subsets* of the original splitter
+ - `remaining` is an *estimate* on the number of remaining elements
+ - `split` is *efficient* : O(log *n*) or better
+
+use:
+
+```scala
+def fold(z: A)(f: (A, A) => A): A = {
+  if (remaining < threshold) foldLeft(z)(f)
+  else {
+    val children = for (child <- split) yield task {child.fold(z)(f)}
+    children.map(_.join()).foldLeft(z)(f)
+  }
+}
+```
+
+### Builder
+trait:
+
+```scala
+trait Builder[A, Repr] {
+  def +=(elem: A): Builder[A, Repr]
+  def result: Repr
+}
+
+def newBuilder: Builder[A, Repr] // on every collection
+```
+
+Contract:
+
+ - calling `result` returns a collection of type `Repr`, containing the elements that were previously added with `+=`
+ - calling `result` leaves the `Builder` in an *undefined state*
+
+use:
+
+```scala
+def filter(p: T=> Boolean): Repr = {
+  val b = newBuilder
+  for (x <- this) if (p(x)) b += x
+  b.result
+}
+```
+
+### Combiner
+trait:
+
+```scala
+trait Combiner[A, Repr] extends Builder[A, Repr] {
+  def combine(that: Combiner[A, Repr]): Combiner[A, Repr]
+}
+
+def newCombiner: Combiner[T, Repr] //on every parallel collection
+```
+
+contract:
+
+ - calling `combine` returns a *new combiner* that contains elements of the input combiners
+ - calling `combine` leaves both original `Combiner`s in an *undefined state*
+ - `combine` is efficient: O(log *n*) or better
+
+use:
+
+Example during class
