@@ -39,7 +39,7 @@ A thread image in memory contains *copies of the processor registers* and the *c
 
 The os has a *scheduler* that runs all active threads on all cores. If there are more threads than cores, they are *time sliced*.
 
-Switching from a thread to another (***context switching***) is a complex and expensive operation (~1ms per switch) but is less expensive that blocking io.
+Switching from a thread to another (***context switching***) is a complex and expensive operation (~1000ns = 1  per switch) but is less expensive that blocking io.
 
 Threads can be paused **from inside** with `Thread.sleep(time)`.
 
