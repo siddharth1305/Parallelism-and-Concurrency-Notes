@@ -9,7 +9,8 @@ The class is divided into three parts and the structure of my notes reflect the 
   - [Week 3 - Data-Parallelism](PARA-Week3.md)
   - [Week 4 - Data Structures for Parallel Computing](PARA-Week4.md)
  - Part 2: Concurreny
-  - [Week 1 - Introduction to Concurrent Programming](CONC-Week1.md)
+  - [Week 1 - Introduction to Concurrent Programming](CONC-Week5.md)
+  - [Week 2 - Concurrency Building Blocks](CONC-Week6.md)
 
 
 All the notes in a single file (handy for ***searching***) are also available [here](singlefile.md)
