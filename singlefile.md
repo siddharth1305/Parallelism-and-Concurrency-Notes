@@ -1360,6 +1360,7 @@ def sendToSafe(packet: Array[Byte]): Future[Array[Byte]] =
 ```
 
 ### An auxiliary function to reduce boilerplate
+
 ```scala
 def fallbackTo(that: =>Future[T]): Future[T] = {
   //if this future fails take the successful result of that future
@@ -1375,7 +1376,8 @@ def sendToSafe(packet: Array[Byte]): Future[Array[Byte]] =
     sendTo(mailServer.usa, packet)
   } recover {
     case europeError => europeError.getMessage.toByteArray
-  }
+}
+```
 
 ### Creating futures
 ```scala
