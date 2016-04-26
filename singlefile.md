@@ -558,7 +558,7 @@ Here are the main types of scala collections and their parallel counterparts:
 
 | Sequential Collection  | Corresponding Parallel Collection |
 |------------------------|-----------------------------------|
-| `ParArray[T]`          | `Array[T]`and `ArrayBuffer[T]`    |
+| `Array[T]`and `ArrayBuffer[T]` |  `ParArray[T]`          |    |
 | `Range`                | `ParRange`                        |
 | `Vector[T]`            | `ParVector[T]`                    |
 | `immutable.HashSet[T]` | `immutable.ParHashSet[T]`         |
