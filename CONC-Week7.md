@@ -86,6 +86,8 @@ trait Future[T] {
 We can just pass a block of code: `def/va name = Future {action returning T}`
 
 The method `onComplete` is called when the Future is ready. Future is ***asynchronous***.
+In addition to `onComplete`, the methods `onSuccess` and `onFailure` are available. They do exactly what their names suggest: `onSuccess` is executed when the future computation is terminated with a success while `onFailure` is called when the computation returns an exception.
+
 `callback` needs to use pattern matching to distinguish if the Try is a success or a failure. This however introduces a lot of boilerplate code.
 
 Thus we consider some alternative designs:
@@ -125,6 +127,24 @@ all our program would have to move inside this case. UGLY (javascript)
 ```scala
 val packet: Future[Array[Byte]] = socket.readFromMemory
 val confirmation: Future[Array[Byte]] = packet.flatMap(p => socket.sendToEurope(p))
+```
+
+### For comprehension
+For comprehension can also be used with `Future`s:
+```scala
+val usdQuote = Future { connection.getCurrentValue(USD) }
+val chfQuote = Future { connection.getCurrentValue(CHF) }
+
+val purchase = for {
+  usd <- usdQuote
+  chf <- chfQuote
+  if isProfitable(usd, chf)
+} yield connection.buy(amount, chf)
+
+purchase onSuccess {
+  case _ => println("Purchased " + amount + " CHF")
+}
+
 ```
 
 ### Robust solution for packet sending
