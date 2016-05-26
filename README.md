@@ -13,5 +13,6 @@ The class is divided into three parts and the structure of my notes reflect the 
   - [Week 2 - Concurrency Building Blocks](CONC-Week6.md)
   - [Week 3 - Try and Future](CONC-Week7.md)
  - [Part 4: Distributed Data Parallel Programming in Apache Spark](DATA-Week1.md)
+  - [pdf](spark.pdf)
 
 All the notes in a single file (handy for ***searching***) are also available [here](singlefile.md)
