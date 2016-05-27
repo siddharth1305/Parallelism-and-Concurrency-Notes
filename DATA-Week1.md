@@ -73,10 +73,13 @@ Data within an RDD is split into several ***partitions*** such that
  In Spark two kinds of partitioning: **Hash partitioning** and **Range partitioning**.
 
 Two ways to create RDDs with specific partitionings:
- 1. Call `partitionBy` on an RDD, providing an explicit `Partitioner`
- 2. Using transformations that return RDDs with specific partitioners.
+ 1. Call `partitionBy` on an RDD, providing an explicit `Partitioner`:
 
 `def partitionBy(partitioner: Partitioner): RDD[(K, V)]`
+ 2. Using transformations that return RDDs with specific partitioners.
+
+We can retrieve the partitioner of an rdd with `.partitioner` which returns `Option[Partitioner]`
+
 EX
 ```
 val pairs = purchasedRdd.map(p => (p.customerId, p.price))
@@ -84,17 +87,21 @@ val tunedPartitioner = new RangePartitioner(8, ranges)
 val partitioned = pairs.partitionBy(tunedPartitioner).persist()
 ```
 **The result of `partitionBy` should be persisted. Otherwise, the partitioning is repeatedly applied each time the partitioned RDD is used**
+
 ### Hash partitioning
 `groupByKey` first computes, for each tuple, `(k, v)` its partition: `p = k.hashCode() % numPartitions` and then sends all the tuples in the same partition `p` to the same machine hosting `p`
 
+Create hash partitioner: `val partitioner: HashPartitioner = new HashPartitioner(numOfPartitions)`
+
 ### Range Partitioning
-Pair RDDs may contain keys that have an *ordering* defined (Int, Char, String, ...). For these RDDs, *range partitioning* may be more efficient.
+Pair RDDs may contain keys that have an *ordering* defined (Int, Char, String, ...). For these RDDs, *range partitioning* may be more efficient. **Tuples with keys in the same range appear on the same machine**.
 Keys are partitioned according to:
 
  1. An *ordering* for keys
  2. A set of *sorted ranges* for keys.
 
-**Tuples with keys in the same range appear on the same machine**.
+
+Create range partitioner: `val partitioner: RangePartitioner = new RangePartitioner(numOfPartitions, rddTOpartition)`
 
 ### Partitioning using Transformations
 Pair RDD resulting from a **transformation on a partitioned Pair RDD** are typically configured to use the hash partitioner that was used to construct the orginal RDD.
