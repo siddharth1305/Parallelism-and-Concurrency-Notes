@@ -83,7 +83,7 @@ We can retrieve the partitioner of an rdd with `.partitioner` which returns `Opt
 EX
 ```
 val pairs = purchasedRdd.map(p => (p.customerId, p.price))
-val tunedPartitioner = new RangePartitioner(8, ranges)
+val tunedPartitioner = new RangePartitioner(8, pairs)
 val partitioned = pairs.partitionBy(tunedPartitioner).persist()
 ```
 **The result of `partitionBy` should be persisted. Otherwise, the partitioning is repeatedly applied each time the partitioned RDD is used**
