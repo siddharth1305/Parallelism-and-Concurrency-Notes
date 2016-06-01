@@ -44,8 +44,8 @@ Create PairRDD usually using `map`
 ### Joins
 
  - `def join[W](other: RDD[(K,W)]): RDD[(K, (V, W))]` only the keys present in both RDDs are present in the result
- - `def leftOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (V, Option[W]))]` if present left will be in result, matched with None if not in right.
- - `def rightOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], W))]` if present right will be in result, matched with None if not in left.
+ - `def leftOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (V, Option[W]))]`
+ - `def rightOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], W))]`
 
 ## Remember parallelizable operation
 Associativity!!!
